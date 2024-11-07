@@ -1,0 +1,302 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Student
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public string Grade { get; set; }
+    public bool IsEnrolled { get; set; } = false;
+
+    public Student(string name = "", int age = 0, string grade = "")
+    {
+        Name = name;
+        Age = age;
+        Grade = grade;
+    }
+
+    public override string ToString()
+    {
+        return $"Name: {Name}, Age: {Age}, Grade: {Grade}, Enrolled: {(IsEnrolled ? "Yes" : "No")}";
+    }
+}
+
+public class School
+{
+    private const int MaxStudents = 100;
+    private readonly List<Student> students = new();
+
+    public void AddStudent(Student student)
+    {
+        if (students.Count < MaxStudents)
+        {
+            students.Add(student);
+            Console.WriteLine("Student added successfully!");
+        }
+        else
+        {
+            Console.WriteLine("School is at maximum capacity, cannot add more students.");
+        }
+    }
+
+    public void DisplayStudents(bool onlyEnrolled = false, bool sorted = false, string sortBy = "name")
+    {
+        var studentList = onlyEnrolled ? students.Where(s => s.IsEnrolled).ToList() : new List<Student>(students);
+
+        if (studentList.Count == 0)
+        {
+            Console.WriteLine("No students to display.");
+            return;
+        }
+
+        if (sorted)
+        {
+            studentList = sortBy.ToLower() == "grade"
+                ? studentList.OrderBy(s => s.Grade).ToList()
+                : studentList.OrderBy(s => s.Name).ToList();
+        }
+
+        Console.WriteLine("Students in the School:");
+        studentList.ForEach(student => Console.WriteLine(student));
+    }
+
+    public void SearchStudent(string name)
+    {
+        var student = students.Find(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        Console.WriteLine(student != null ? $"Student found:\n{student}" : "Student not found.");
+    }
+
+    public void EnrollStudent(string name)
+    {
+        var student = students.Find(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (student != null)
+        {
+            if (!student.IsEnrolled)
+            {
+                student.IsEnrolled = true;
+                Console.WriteLine($"Student '{name}' has been enrolled.");
+            }
+            else
+            {
+                Console.WriteLine($"Student '{name}' is already enrolled.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Student not found.");
+        }
+    }
+
+    public void UnenrollStudent(string name)
+    {
+        var student = students.Find(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (student != null)
+        {
+            if (student.IsEnrolled)
+            {
+                student.IsEnrolled = false;
+                Console.WriteLine($"Student '{name}' has been unenrolled.");
+            }
+            else
+            {
+                Console.WriteLine($"Student '{name}' was not enrolled.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Student not found.");
+        }
+    }
+
+    public int GetStudentCount() => students.Count;
+}
+
+public class Program
+{
+    private static void AdminMenu(School school)
+    {
+        int choice;
+        do
+        {
+            Console.WriteLine("\nAdmin Menu");
+            Console.WriteLine("1. Add Student");
+            Console.WriteLine("2. Display Students");
+            Console.WriteLine("3. Display Enrolled Students Only");
+            Console.WriteLine("4. Display Students Sorted by Name");
+            Console.WriteLine("5. Display Students Sorted by Grade");
+            Console.WriteLine("6. Count Students in School");
+            Console.WriteLine("7. Exit");
+            Console.Write("Enter your choice: ");
+
+            if (int.TryParse(Console.ReadLine(), out choice))
+            {
+                switch (choice)
+                {
+                    case 1:
+                        AddStudentFlow(school);
+                        break;
+                    case 2:
+                        school.DisplayStudents();
+                        break;
+                    case 3:
+                        school.DisplayStudents(onlyEnrolled: true);
+                        break;
+                    case 4:
+                        school.DisplayStudents(sorted: true, sortBy: "name");
+                        break;
+                    case 5:
+                        school.DisplayStudents(sorted: true, sortBy: "grade");
+                        break;
+                    case 6:
+                        Console.WriteLine($"Total students in school: {school.GetStudentCount()}");
+                        break;
+                    case 7:
+                        Console.WriteLine("Exiting admin menu...");
+                        break;
+                    default:
+                        Console.WriteLine("Invalid choice! Please try again.");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Please enter a valid number.");
+            }
+        } while (choice != 7);
+    }
+
+    private static void AddStudentFlow(School school)
+    {
+        Console.Write("Enter name: ");
+        string name = Console.ReadLine();
+
+        Console.Write("Enter age: ");
+        if (int.TryParse(Console.ReadLine(), out int age))
+        {
+            Console.Write("Enter grade: ");
+            string grade = Console.ReadLine();
+            school.AddStudent(new Student(name, age, grade));
+        }
+        else
+        {
+            Console.WriteLine("Invalid age. Student not added.");
+        }
+    }
+
+    private static void StudentMenu(School school)
+    {
+        int choice;
+        do
+        {
+            Console.WriteLine("\nStudent Menu");
+            Console.WriteLine("1. Search Student");
+            Console.WriteLine("2. Enroll Student");
+            Console.WriteLine("3. Unenroll Student");
+            Console.WriteLine("4. View All Students (Sorted by Name)");
+            Console.WriteLine("5. View All Students (Sorted by Grade)");
+            Console.WriteLine("6. View Enrolled Students Only");
+            Console.WriteLine("7. View Total Number of Students");
+            Console.WriteLine("8. Exit");
+            Console.Write("Enter your choice: ");
+
+            if (int.TryParse(Console.ReadLine(), out choice))
+            {
+                switch (choice)
+                {
+                    case 1:
+                        SearchStudentFlow(school);
+                        break;
+                    case 2:
+                        EnrollStudentFlow(school);
+                        break;
+                    case 3:
+                        UnenrollStudentFlow(school);
+                        break;
+                    case 4:
+                        school.DisplayStudents(sorted: true, sortBy: "name");
+                        break;
+                    case 5:
+                        school.DisplayStudents(sorted: true, sortBy: "grade");
+                        break;
+                    case 6:
+                        school.DisplayStudents(onlyEnrolled: true);
+                        break;
+                    case 7:
+                        Console.WriteLine($"Total students in school: {school.GetStudentCount()}");
+                        break;
+                    case 8:
+                        Console.WriteLine("Exiting student menu...");
+                        break;
+                    default:
+                        Console.WriteLine("Invalid choice! Please try again.");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Please enter a valid number.");
+            }
+        } while (choice != 8);
+    }
+
+    private static void SearchStudentFlow(School school)
+    {
+        Console.Write("Enter name to search: ");
+        string name = Console.ReadLine();
+        school.SearchStudent(name);
+    }
+
+    private static void EnrollStudentFlow(School school)
+    {
+        Console.Write("Enter name to enroll: ");
+        string name = Console.ReadLine();
+        school.EnrollStudent(name);
+    }
+
+    private static void UnenrollStudentFlow(School school)
+    {
+        Console.Write("Enter name to unenroll: ");
+        string name = Console.ReadLine();
+        school.UnenrollStudent(name);
+    }
+
+    public static void Main()
+    {
+        var school = new School();
+        int userType;
+
+        do
+        {
+            Console.WriteLine("Welcome to the School Management System");
+            Console.WriteLine("Select User Type:");
+            Console.WriteLine("1. Admin");
+            Console.WriteLine("2. Student");
+            Console.WriteLine("3. Exit");
+            Console.Write("Enter your choice: ");
+
+            if (int.TryParse(Console.ReadLine(), out userType))
+            {
+                switch (userType)
+                {
+                    case 1:
+                        AdminMenu(school);
+                        break;
+                    case 2:
+                        StudentMenu(school);
+                        break;
+                    case 3:
+                        Console.WriteLine("Exiting the system...");
+                        break;
+                    default:
+                        Console.WriteLine("Invalid user type selected. Please try again.");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Please enter a valid number.");
+            }
+        } while (userType != 3);
+    }
+}
